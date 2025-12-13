@@ -1,0 +1,22 @@
+[Unit]
+Description=SMB Backup Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/anders/.backup/BackupScript.sh
+WorkingDirectory=/home/anders
+
+# Environment - CHANGE 'anders' TO YOUR USERNAME
+Environment="HOME=/home/anders"
+Environment="USER=anders"  
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=smb-backup
+
+[Install]
+WantedBy=default.target

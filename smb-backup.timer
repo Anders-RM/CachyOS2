@@ -1,0 +1,16 @@
+[Unit]
+Description=Weekly SMB Backup Timer
+Requires=smb-backup.service
+
+[Timer]
+# Every Sunday at 20:00 (changed from Saturday 18:00 to match your original backup.sh)
+OnCalendar=Sun 20:00:00
+# Add randomization to avoid network congestion
+RandomizedDelaySec=300
+# Ensure it runs even if system was off
+Persistent=true
+# Run immediately if we missed a scheduled run
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target
