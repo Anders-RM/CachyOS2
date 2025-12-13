@@ -199,25 +199,18 @@ configure_filen() {
     print_status "Creating Filen desktop shortcut..."
     run_as_user ln -sf "$ACTUAL_HOME/filen" "$ACTUAL_HOME/Desktop/Filen"
 
-    # Create autostart entry for Filen
+    # Create autostart entry for Filen by copying from /usr/share/applications/
     print_status "Adding Filen to autostart..."
     local autostart_dir="$ACTUAL_HOME/.config/autostart"
     run_as_user mkdir -p "$autostart_dir"
 
-    cat > "$autostart_dir/filen-desktop.desktop" << EOF
-[Desktop Entry]
-Type=Application
-Name=Filen Desktop
-Comment=Filen Cloud Storage
-Exec=filen-desktop
-Icon=filen-desktop
-Terminal=false
-Categories=Network;FileTransfer;
-StartupNotify=false
-X-GNOME-Autostart-enabled=true
-EOF
-
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/filen-desktop.desktop"
+    if [ -f "/usr/share/applications/filen-desktop.desktop" ]; then
+        cp /usr/share/applications/filen-desktop.desktop "$autostart_dir/filen-desktop.desktop"
+        chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/filen-desktop.desktop"
+    else
+        print_warning "Filen desktop file not found in /usr/share/applications/"
+        print_warning "Autostart entry will need to be created manually after installation"
+    fi
 
     print_success "Filen configured with autostart and desktop shortcut"
 }
