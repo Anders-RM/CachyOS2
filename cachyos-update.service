@@ -1,0 +1,17 @@
+[Unit]
+Description=CachyOS System Update Service
+After=network-online.target
+Wants=network-online.target
+ConditionACPower=true
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/cachyos-update.sh
+User=root
+StandardOutput=journal+console
+StandardError=journal+console
+TimeoutSec=3600
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

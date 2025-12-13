@@ -411,6 +411,58 @@ EOF
 }
 
 # ============================================================================
+# UPDATE SERVICE SETUP
+# ============================================================================
+
+setup_update_service() {
+    print_status "Setting up CachyOS update service..."
+
+    local script_source="$(dirname "$0")/cachyos-update.sh"
+    local service_source="$(dirname "$0")/cachyos-update.service"
+    local timer_source="$(dirname "$0")/cachyos-update.timer"
+
+    # Install the update script
+    if [ -f "$script_source" ]; then
+        print_status "Installing cachyos-update.sh to /usr/local/bin/..."
+        cp "$script_source" /usr/local/bin/cachyos-update.sh
+        chmod +x /usr/local/bin/cachyos-update.sh
+    else
+        print_warning "cachyos-update.sh not found in script directory"
+        return 1
+    fi
+
+    # Install systemd service
+    if [ -f "$service_source" ]; then
+        print_status "Installing cachyos-update.service..."
+        cp "$service_source" /etc/systemd/system/cachyos-update.service
+    else
+        print_warning "cachyos-update.service not found"
+    fi
+
+    # Install systemd timer
+    if [ -f "$timer_source" ]; then
+        print_status "Installing cachyos-update.timer..."
+        cp "$timer_source" /etc/systemd/system/cachyos-update.timer
+    else
+        print_warning "cachyos-update.timer not found"
+    fi
+
+    # Reload systemd and enable timer
+    print_status "Enabling update service timer..."
+    systemctl daemon-reload
+    systemctl enable cachyos-update.timer
+    systemctl start cachyos-update.timer
+
+    # Install pacman-contrib for paccache (cache cleanup)
+    if ! command -v paccache &> /dev/null; then
+        print_status "Installing pacman-contrib for cache cleanup..."
+        pacman -S --noconfirm --needed pacman-contrib
+    fi
+
+    print_success "Update service installed (runs every 3 hours)"
+}
+
+# ============================================================================
 # SUMMARY
 # ============================================================================
 
@@ -441,6 +493,7 @@ print_summary() {
     echo "  - Reflector: daily at 18:00, mirrors from DE/SE/DK, sorted by rate"
     echo "  - Desktop: trashcan icon added"
     echo "  - Backup: script and timer installed"
+    echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo
     echo "Post-Installation Steps:"
     echo "  1. Edit ~/.backup/smbcredentials with your SMB credentials"
@@ -453,6 +506,10 @@ print_summary() {
     echo
     echo "To check reflector status:"
     echo "  systemctl status reflector.timer"
+    echo
+    echo "To check update service status:"
+    echo "  systemctl status cachyos-update.timer"
+    echo "  journalctl -u cachyos-update.service"
     echo
 }
 
@@ -484,6 +541,7 @@ main() {
     configure_flatpak
     configure_desktop_trashcan
     setup_backup_script
+    setup_update_service
 
     # Print summary
     print_summary
