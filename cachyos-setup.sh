@@ -176,7 +176,7 @@ install_aur_packages() {
         heroic-games-launcher-bin \
         modrinth-app-bin \
         protonplus \
-        jellyfin-bin
+        jellyfin-media-player
 
     print_success "AUR packages installed successfully"
 }
