@@ -299,29 +299,41 @@ configure_desktop_trashcan() {
     local desktop_dir="$ACTUAL_HOME/Desktop"
     run_as_user mkdir -p "$desktop_dir"
 
-    # Create trash desktop entry for KDE Plasma (CachyOS default)
+    # Create trash desktop entry (works with COSMIC and other desktops)
     cat > "$desktop_dir/trash.desktop" << 'EOF'
 [Desktop Entry]
 Name=Trash
 Comment=Contains deleted files
 Icon=user-trash-full
 EmptyIcon=user-trash
-Type=Link
-URL=trash:/
+Type=Application
+Exec=cosmic-files trash:///
+Terminal=false
+Categories=Utility;FileManager;
 EOF
 
     chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_dir/trash.desktop"
     chmod 755 "$desktop_dir/trash.desktop"
 
-    # For KDE Plasma, also ensure desktop icons are enabled
-    # Create plasma desktop containment config if needed
-    local plasma_config="$ACTUAL_HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+    # For COSMIC desktop, create a symlink to trash in the Desktop folder
+    # COSMIC uses cosmic-files for file management
+    print_status "Configuring for COSMIC desktop..."
 
-    if [ -f "$plasma_config" ]; then
-        print_warning "Plasma desktop config exists. Trash icon added to Desktop folder."
-    else
-        print_status "Note: If trash icon doesn't appear, enable 'Show Desktop Icons' in Plasma settings"
-    fi
+    # COSMIC desktop typically shows files from ~/Desktop directly
+    # The .desktop file above should work, but also create an alternative launcher
+    cat > "$desktop_dir/Open Trash.desktop" << 'EOF'
+[Desktop Entry]
+Name=Open Trash
+Comment=Open the trash folder
+Icon=user-trash
+Type=Application
+Exec=xdg-open trash:///
+Terminal=false
+Categories=Utility;
+EOF
+
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_dir/Open Trash.desktop"
+    chmod 755 "$desktop_dir/Open Trash.desktop"
 
     print_success "Trashcan added to desktop"
 }
