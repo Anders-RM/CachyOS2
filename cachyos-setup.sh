@@ -125,17 +125,23 @@ install_1password() {
 install_cider() {
     print_status "Installing Cider (Apple Music client)..."
 
-    # Add Cider repository
-    if ! grep -q "\[cider\]" /etc/pacman.conf; then
-        print_status "Adding Cider repository to pacman.conf..."
+    # Import GPG key
+    print_status "Importing Cider GPG key..."
+    curl -s https://repo.cider.sh/ARCH-GPG-KEY | pacman-key --add -
+    pacman-key --lsign-key A0CD6B993438E22634450CDD2A236C3F42A61682
+
+    # Add Cider Collective repository
+    if ! grep -q "\[cidercollective\]" /etc/pacman.conf; then
+        print_status "Adding Cider Collective repository to pacman.conf..."
         cat >> /etc/pacman.conf << 'EOF'
 
-[cider]
-SigLevel = Never
-Server = https://repo.cider.sh/
+# Cider Collective Repository
+[cidercollective]
+SigLevel = Required TrustedOnly
+Server = https://repo.cider.sh/arch
 EOF
     else
-        print_warning "Cider repository already exists in pacman.conf"
+        print_warning "Cider Collective repository already exists in pacman.conf"
     fi
 
     # Update package database and install
