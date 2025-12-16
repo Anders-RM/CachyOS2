@@ -121,8 +121,8 @@ install_1password() {
         cat >> /etc/pacman.conf << 'EOF'
 
 [1password]
-SigLevel = Required TrustAll
-Server = https://downloads.1password.com/linux/arch/$arch/stable/
+SigLevel = Optional TrustAll
+Server = https://downloads.1password.com/linux/arch/amd64/stable/
 EOF
     else
         print_warning "1Password repository already exists in pacman.conf"
