@@ -399,16 +399,16 @@ EOF
         print_warning "Please edit $creds_file with your SMB credentials"
     fi
 
-    # Enable user systemd services
-    print_status "Enabling backup timer for user $ACTUAL_USER..."
-    run_as_user systemctl --user daemon-reload
-    run_as_user systemctl --user enable smb-backup.timer 2>/dev/null || true
-
+    # Note: User systemd services must be enabled from within the user session
+    # Cannot run systemctl --user from root context
     print_success "Backup script setup complete"
-    print_warning "Remember to:"
+    print_warning "After logging in as $ACTUAL_USER, run these commands to enable the backup timer:"
+    print_warning "  systemctl --user daemon-reload"
+    print_warning "  systemctl --user enable --now smb-backup.timer"
+    print_warning ""
+    print_warning "Also remember to:"
     print_warning "  1. Edit $creds_file with your SMB credentials"
     print_warning "  2. Verify SMB server settings in $script_dest"
-    print_warning "  3. Start the timer with: systemctl --user start smb-backup.timer"
 }
 
 # ============================================================================
@@ -498,12 +498,12 @@ print_summary() {
     echo
     echo "Post-Installation Steps:"
     echo "  1. Edit ~/.backup/smbcredentials with your SMB credentials"
-    echo "  2. Start Filen and configure your account"
-    echo "  3. Log into 1Password"
-    echo "  4. Log into Steam and other game launchers"
-    echo
-    echo "To start backup timer manually:"
-    echo "  systemctl --user start smb-backup.timer"
+    echo "  2. Enable backup timer (run as your user, not root):"
+    echo "       systemctl --user daemon-reload"
+    echo "       systemctl --user enable --now smb-backup.timer"
+    echo "  3. Start Filen and configure your account"
+    echo "  4. Log into 1Password"
+    echo "  5. Log into Steam and other game launchers"
     echo
     echo "To check reflector status:"
     echo "  systemctl status reflector.timer"
@@ -511,6 +511,9 @@ print_summary() {
     echo "To check update service status:"
     echo "  systemctl status cachyos-update.timer"
     echo "  journalctl -u cachyos-update.service"
+    echo
+    echo "To check backup timer status (run as your user):"
+    echo "  systemctl --user status smb-backup.timer"
     echo
 }
 
