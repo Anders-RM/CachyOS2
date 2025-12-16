@@ -84,9 +84,9 @@ install_yay() {
         return 0
     fi
 
-    # Create temp directory for building
+    # Create temp directory for building (as user, not root)
     local temp_dir="/tmp/yay_build_$$"
-    mkdir -p "$temp_dir"
+    run_as_user mkdir -p "$temp_dir"
 
     # Clone and build yay as user
     run_as_user git clone https://aur.archlinux.org/yay.git "$temp_dir/yay"
