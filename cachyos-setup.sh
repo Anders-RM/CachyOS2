@@ -107,30 +107,13 @@ install_yay() {
 install_1password() {
     print_status "Installing 1Password..."
 
-    # Import GPG key
+    # Import GPG key for package verification
     print_status "Importing 1Password GPG key..."
     curl -sS https://downloads.1password.com/linux/keys/1password.asc | gpg --import
 
-    # Add the key to pacman keyring
-    curl -sS https://downloads.1password.com/linux/keys/1password.asc | pacman-key --add -
-    pacman-key --lsign-key 3FEF9748469ADBE15DA7CA80AC2D62742012EA22
-
-    # Add 1Password repository
-    if ! grep -q "\[1password\]" /etc/pacman.conf; then
-        print_status "Adding 1Password repository to pacman.conf..."
-        cat >> /etc/pacman.conf << 'EOF'
-
-[1password]
-SigLevel = Optional TrustAll
-Server = https://downloads.1password.com/linux/arch/amd64/stable/
-EOF
-    else
-        print_warning "1Password repository already exists in pacman.conf"
-    fi
-
-    # Update package database and install
-    pacman -Sy --noconfirm
-    pacman -S --noconfirm --needed 1password
+    # Install 1Password from AUR using yay
+    print_status "Installing 1Password from AUR..."
+    run_as_user yay -S --noconfirm --needed 1password
 
     print_success "1Password installed successfully"
 }
