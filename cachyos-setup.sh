@@ -285,23 +285,32 @@ configure_flatpak() {
 configure_desktop_trashcan() {
     print_status "Configuring desktop trash icon for COSMIC..."
 
-    # COSMIC desktop has a built-in setting for trash icon
-    # The setting is in COSMIC Settings > Desktop > Show on Desktop > Trash folder icon
+    # COSMIC desktop stores config in ~/.config/cosmic/
+    # Desktop settings are in com.system76.CosmicFiles
+    local cosmic_config_dir="$ACTUAL_HOME/.config/cosmic"
+    local cosmic_files_config="$cosmic_config_dir/com.system76.CosmicFiles/v1"
 
-    # Try to enable it via COSMIC config file
-    local cosmic_desktop_config="$ACTUAL_HOME/.config/cosmic/com.system76.CosmicBackground/v1/all"
-    local cosmic_panel_config_dir="$ACTUAL_HOME/.config/cosmic"
+    # Create config directory structure
+    run_as_user mkdir -p "$cosmic_files_config"
 
-    # COSMIC stores desktop settings - try to find and modify
-    # For now, provide instructions since COSMIC config format may vary
-    print_status "COSMIC desktop detected"
-    print_warning "To enable the Trash icon on desktop:"
+    # Enable trash icon on desktop
+    # COSMIC uses RON format for config files
+    print_status "Enabling trash icon in COSMIC desktop settings..."
+
+    # Set show_trash to true
+    echo "true" > "$cosmic_files_config/show_trash"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/show_trash"
+
+    # Also enable desktop content
+    echo "true" > "$cosmic_files_config/show_content"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/show_content"
+
+    # If the config files don't work, provide manual instructions as fallback
+    print_success "Desktop trash icon configuration applied"
+    print_warning "If the trash icon doesn't appear after login/reboot:"
     print_warning "  1. Right-click on the desktop"
-    print_warning "  2. Select 'Desktop Settings' or open COSMIC Settings"
-    print_warning "  3. Go to Desktop > Show on Desktop"
-    print_warning "  4. Enable 'Trash folder icon'"
-
-    print_success "Desktop trashcan configuration noted"
+    print_warning "  2. Select 'Desktop view options'"
+    print_warning "  3. Enable 'Trash folder icon'"
 }
 
 # ============================================================================
