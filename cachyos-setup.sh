@@ -283,48 +283,25 @@ configure_flatpak() {
 # ============================================================================
 
 configure_desktop_trashcan() {
-    print_status "Adding trashcan to desktop..."
+    print_status "Configuring desktop trash icon for COSMIC..."
 
-    local desktop_dir="$ACTUAL_HOME/Desktop"
-    run_as_user mkdir -p "$desktop_dir"
+    # COSMIC desktop has a built-in setting for trash icon
+    # The setting is in COSMIC Settings > Desktop > Show on Desktop > Trash folder icon
 
-    # Create trash desktop entry (works with COSMIC and other desktops)
-    cat > "$desktop_dir/trash.desktop" << 'EOF'
-[Desktop Entry]
-Name=Trash
-Comment=Contains deleted files
-Icon=user-trash-full
-EmptyIcon=user-trash
-Type=Application
-Exec=cosmic-files trash:///
-Terminal=false
-Categories=Utility;FileManager;
-EOF
+    # Try to enable it via COSMIC config file
+    local cosmic_desktop_config="$ACTUAL_HOME/.config/cosmic/com.system76.CosmicBackground/v1/all"
+    local cosmic_panel_config_dir="$ACTUAL_HOME/.config/cosmic"
 
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_dir/trash.desktop"
-    chmod 755 "$desktop_dir/trash.desktop"
+    # COSMIC stores desktop settings - try to find and modify
+    # For now, provide instructions since COSMIC config format may vary
+    print_status "COSMIC desktop detected"
+    print_warning "To enable the Trash icon on desktop:"
+    print_warning "  1. Right-click on the desktop"
+    print_warning "  2. Select 'Desktop Settings' or open COSMIC Settings"
+    print_warning "  3. Go to Desktop > Show on Desktop"
+    print_warning "  4. Enable 'Trash folder icon'"
 
-    # For COSMIC desktop, create a symlink to trash in the Desktop folder
-    # COSMIC uses cosmic-files for file management
-    print_status "Configuring for COSMIC desktop..."
-
-    # COSMIC desktop typically shows files from ~/Desktop directly
-    # The .desktop file above should work, but also create an alternative launcher
-    cat > "$desktop_dir/Open Trash.desktop" << 'EOF'
-[Desktop Entry]
-Name=Open Trash
-Comment=Open the trash folder
-Icon=user-trash
-Type=Application
-Exec=xdg-open trash:///
-Terminal=false
-Categories=Utility;
-EOF
-
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_dir/Open Trash.desktop"
-    chmod 755 "$desktop_dir/Open Trash.desktop"
-
-    print_success "Trashcan added to desktop"
+    print_success "Desktop trashcan configuration noted"
 }
 
 # ============================================================================
@@ -492,7 +469,7 @@ print_summary() {
     echo "Configurations Applied:"
     echo "  - Filen: autostart enabled, ~/filen created, desktop link added"
     echo "  - Reflector: daily at 18:00, mirrors from DE/SE/DK, sorted by rate"
-    echo "  - Desktop: trashcan icon added"
+    echo "  - Desktop: enable trash icon via COSMIC Settings > Desktop"
     echo "  - Backup: script and timer installed"
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo
