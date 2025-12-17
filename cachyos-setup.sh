@@ -317,6 +317,188 @@ EOF
 }
 
 # ============================================================================
+# COSMIC DESKTOP CONFIGURATION
+# ============================================================================
+
+configure_cosmic_desktop() {
+    print_status "Configuring COSMIC desktop settings..."
+
+    local cosmic_config="$ACTUAL_HOME/.config/cosmic"
+
+    # -------------------------------------------------------------------------
+    # Dock Configuration (com.system76.CosmicPanel.Dock)
+    # -------------------------------------------------------------------------
+    print_status "Configuring COSMIC dock..."
+    local dock_config="$cosmic_config/com.system76.CosmicPanel.Dock/v1"
+    run_as_user mkdir -p "$dock_config"
+
+    # Extend dock to edges and remove gap
+    cat > "$dock_config/extend_to_edge" << 'EOF'
+true
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/extend_to_edge"
+
+    # Remove dock gap
+    cat > "$dock_config/gap" << 'EOF'
+0
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/gap"
+
+    # Configure dock plugins (remove Minimized Windows, Launcher, Workspaces, App Library)
+    cat > "$dock_config/plugins_wings" << 'EOF'
+Some(([], []))
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/plugins_wings"
+
+    # Keep only app icons in center
+    cat > "$dock_config/plugins_center" << 'EOF'
+Some(["com.system76.CosmicAppList"])
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/plugins_center"
+
+    # -------------------------------------------------------------------------
+    # Panel Configuration (remove workspaces button)
+    # -------------------------------------------------------------------------
+    print_status "Configuring COSMIC panel..."
+    local panel_config="$cosmic_config/com.system76.CosmicPanel.Panel/v1"
+    run_as_user mkdir -p "$panel_config"
+
+    # Panel plugins - remove workspaces button
+    cat > "$panel_config/plugins_wings" << 'EOF'
+Some((["com.system76.CosmicAppletTime"], ["com.system76.CosmicAppletStatusArea", "com.system76.CosmicAppletNotifications"]))
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$panel_config/plugins_wings"
+
+    cat > "$panel_config/plugins_center" << 'EOF'
+Some([])
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$panel_config/plugins_center"
+
+    # -------------------------------------------------------------------------
+    # App Tray / Favorites Configuration
+    # -------------------------------------------------------------------------
+    print_status "Configuring app tray favorites..."
+    local applist_config="$cosmic_config/com.system76.CosmicAppList/v1"
+    run_as_user mkdir -p "$applist_config"
+
+    # Set favorites (add Floorp, remove Firefox, COSMIC Settings, Store, Text Editor)
+    cat > "$applist_config/favorites" << 'EOF'
+["floorp.desktop", "cosmic-files.desktop", "cosmic-term.desktop"]
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$applist_config/favorites"
+
+    # -------------------------------------------------------------------------
+    # Desktop Appearance - Square Style
+    # -------------------------------------------------------------------------
+    print_status "Configuring desktop appearance (square style)..."
+    local theme_config="$cosmic_config/com.system76.CosmicTheme.Builder/v1"
+    run_as_user mkdir -p "$theme_config"
+
+    # Set corner radius to 0 for square style
+    cat > "$theme_config/corner_radii" << 'EOF'
+(
+    radius_0: (0.0, 0.0, 0.0, 0.0),
+    radius_xs: (0.0, 0.0, 0.0, 0.0),
+    radius_s: (0.0, 0.0, 0.0, 0.0),
+    radius_m: (0.0, 0.0, 0.0, 0.0),
+    radius_l: (0.0, 0.0, 0.0, 0.0),
+    radius_xl: (0.0, 0.0, 0.0, 0.0),
+)
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$theme_config/corner_radii"
+
+    # -------------------------------------------------------------------------
+    # Window Management (Compositor Settings)
+    # -------------------------------------------------------------------------
+    print_status "Configuring window management..."
+    local comp_config="$cosmic_config/com.system76.CosmicComp/v1"
+    run_as_user mkdir -p "$comp_config"
+
+    # Active window hint size: 3
+    cat > "$comp_config/active_hint" << 'EOF'
+3
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/active_hint"
+
+    # Gaps around tiled windows: 6
+    cat > "$comp_config/gaps" << 'EOF'
+(0, 6)
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/gaps"
+
+    # -------------------------------------------------------------------------
+    # Power Settings
+    # -------------------------------------------------------------------------
+    print_status "Configuring power settings..."
+    local power_config="$cosmic_config/com.system76.CosmicSettings.Power/v1"
+    run_as_user mkdir -p "$power_config"
+
+    # Power mode: high performance (Performance)
+    cat > "$power_config/power_profile" << 'EOF'
+"Performance"
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/power_profile"
+
+    # Screen timeout: 30 minutes (1800 seconds)
+    cat > "$power_config/screen_off_time" << 'EOF'
+Some(1800)
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/screen_off_time"
+
+    # Automatic suspend: 1 hour (3600 seconds)
+    cat > "$power_config/suspend_time" << 'EOF'
+Some(3600)
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/suspend_time"
+
+    # -------------------------------------------------------------------------
+    # Input Settings (Num Lock)
+    # -------------------------------------------------------------------------
+    print_status "Configuring input settings..."
+    local input_config="$cosmic_config/com.system76.CosmicSettings.Input/v1"
+    run_as_user mkdir -p "$input_config"
+
+    # Num lock on boot: enabled
+    cat > "$input_config/numlock_on_start" << 'EOF'
+true
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$input_config/numlock_on_start"
+
+    # -------------------------------------------------------------------------
+    # Keyboard Shortcuts
+    # -------------------------------------------------------------------------
+    print_status "Configuring keyboard shortcuts..."
+    local shortcuts_config="$cosmic_config/com.system76.CosmicSettings.Shortcuts/v1"
+    run_as_user mkdir -p "$shortcuts_config"
+
+    # Alt+F4 to shutdown (system action)
+    # Move windows with KDE standard shortcuts
+    # Note: COSMIC shortcuts format may vary
+    cat > "$shortcuts_config/custom" << 'EOF'
+{
+    (Modifiers(bits: 8), "F4"): System(Shutdown),
+}
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$shortcuts_config/custom"
+
+    # -------------------------------------------------------------------------
+    # Session Settings (disable confirm on shutdown)
+    # -------------------------------------------------------------------------
+    print_status "Configuring session settings..."
+    local session_config="$cosmic_config/com.system76.CosmicSession/v1"
+    run_as_user mkdir -p "$session_config"
+
+    # Disable confirm on shutdown
+    cat > "$session_config/confirm_logout" << 'EOF'
+false
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$session_config/confirm_logout"
+
+    print_success "COSMIC desktop configuration applied"
+    print_warning "Some settings may require logout/login to take effect"
+}
+
+# ============================================================================
 # BACKUP SCRIPT SETUP
 # ============================================================================
 
@@ -481,9 +663,18 @@ print_summary() {
     echo "Configurations Applied:"
     echo "  - Filen: autostart enabled, ~/filen created, desktop link added"
     echo "  - Reflector: daily at 18:00, mirrors from DE/SE/DK, sorted by rate"
-    echo "  - Desktop: enable trash icon via COSMIC Settings > Desktop"
+    echo "  - Desktop: trash icon enabled"
     echo "  - Backup: script and timer installed"
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
+    echo "  - COSMIC Desktop:"
+    echo "      * Dock: extended to edges, no gap, removed applets"
+    echo "      * Panel: removed workspaces button"
+    echo "      * App tray: Floorp added, defaults removed"
+    echo "      * Appearance: square style"
+    echo "      * Window hints: 3px, tile gaps: 6px"
+    echo "      * Power: high performance, screen off 30min, suspend 1h"
+    echo "      * NumLock: on at boot"
+    echo "      * Alt+F4: shutdown, no confirm dialog"
     echo
     echo "Post-Installation Steps:"
     echo "  1. Edit ~/.backup/smbcredentials with your SMB credentials"
@@ -533,6 +724,7 @@ main() {
     configure_reflector
     configure_flatpak
     configure_desktop_trashcan
+    configure_cosmic_desktop
     setup_backup_script
     setup_update_service
 
