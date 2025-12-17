@@ -332,137 +332,126 @@ configure_cosmic_desktop() {
     local dock_config="$cosmic_config/com.system76.CosmicPanel.Dock/v1"
     run_as_user mkdir -p "$dock_config"
 
-    # Extend dock to edges and remove gap
-    cat > "$dock_config/extend_to_edge" << 'EOF'
-true
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/extend_to_edge"
+    # Disable anchor gap (gap between dock and screen edge)
+    echo "false" > "$dock_config/anchor_gap"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/anchor_gap"
 
-    # Remove dock gap
-    cat > "$dock_config/gap" << 'EOF'
-0
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/gap"
+    # Extend dock to edges
+    echo "true" > "$dock_config/expand_to_edges"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/expand_to_edges"
 
-    # Configure dock plugins (remove Minimized Windows, Launcher, Workspaces, App Library)
-    cat > "$dock_config/plugins_wings" << 'EOF'
-Some(([], []))
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/plugins_wings"
-
-    # Keep only app icons in center
+    # Keep only app list in center (removes other applets)
     cat > "$dock_config/plugins_center" << 'EOF'
-Some(["com.system76.CosmicAppList"])
+Some([
+    "com.system76.CosmicAppList",
+])
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/plugins_center"
 
+    # Dock size
+    echo "M" > "$dock_config/size"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/size"
+
     # -------------------------------------------------------------------------
-    # Panel Configuration (remove workspaces button)
+    # Panel Configuration (com.system76.CosmicPanel.Panel)
     # -------------------------------------------------------------------------
     print_status "Configuring COSMIC panel..."
     local panel_config="$cosmic_config/com.system76.CosmicPanel.Panel/v1"
     run_as_user mkdir -p "$panel_config"
 
-    # Panel plugins - remove workspaces button
+    # Panel plugins - configure wings (left and right sections)
     cat > "$panel_config/plugins_wings" << 'EOF'
-Some((["com.system76.CosmicAppletTime"], ["com.system76.CosmicAppletStatusArea", "com.system76.CosmicAppletNotifications"]))
+Some(([
+    "com.system76.CosmicPanelWorkspacesButton",
+    "com.system76.CosmicPanelAppButton",
+], [
+    "com.system76.CosmicAppletInputSources",
+    "com.system76.CosmicAppletA11y",
+    "com.system76.CosmicAppletStatusArea",
+    "com.system76.CosmicAppletTiling",
+    "com.system76.CosmicAppletAudio",
+    "com.system76.CosmicAppletBluetooth",
+    "com.system76.CosmicAppletNetwork",
+    "com.system76.CosmicAppletBattery",
+    "com.system76.CosmicAppletNotifications",
+    "com.system76.CosmicAppletPower",
+]))
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$panel_config/plugins_wings"
 
-    cat > "$panel_config/plugins_center" << 'EOF'
-Some([])
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$panel_config/plugins_center"
-
     # -------------------------------------------------------------------------
-    # App Tray / Favorites Configuration
+    # App Tray / Favorites Configuration (com.system76.CosmicAppList)
     # -------------------------------------------------------------------------
     print_status "Configuring app tray favorites..."
     local applist_config="$cosmic_config/com.system76.CosmicAppList/v1"
     run_as_user mkdir -p "$applist_config"
 
-    # Set favorites (add Floorp, remove Firefox, COSMIC Settings, Store, Text Editor)
+    # Set favorites (Floorp and COSMIC Terminal)
     cat > "$applist_config/favorites" << 'EOF'
-["floorp.desktop", "cosmic-files.desktop", "cosmic-term.desktop"]
+[
+    "com.system76.CosmicTerm",
+    "floorp",
+]
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$applist_config/favorites"
 
     # -------------------------------------------------------------------------
-    # Desktop Appearance - Square Style
+    # Desktop Appearance - Square Style (com.system76.CosmicTheme.Dark.Builder)
     # -------------------------------------------------------------------------
     print_status "Configuring desktop appearance (square style)..."
-    local theme_config="$cosmic_config/com.system76.CosmicTheme.Builder/v1"
+    local theme_config="$cosmic_config/com.system76.CosmicTheme.Dark.Builder/v1"
     run_as_user mkdir -p "$theme_config"
 
-    # Set corner radius to 0 for square style
+    # Set corner radius for square style (small values for slight rounding)
     cat > "$theme_config/corner_radii" << 'EOF'
 (
     radius_0: (0.0, 0.0, 0.0, 0.0),
-    radius_xs: (0.0, 0.0, 0.0, 0.0),
-    radius_s: (0.0, 0.0, 0.0, 0.0),
-    radius_m: (0.0, 0.0, 0.0, 0.0),
-    radius_l: (0.0, 0.0, 0.0, 0.0),
-    radius_xl: (0.0, 0.0, 0.0, 0.0),
+    radius_xs: (2.0, 2.0, 2.0, 2.0),
+    radius_s: (2.0, 2.0, 2.0, 2.0),
+    radius_m: (2.0, 2.0, 2.0, 2.0),
+    radius_l: (2.0, 2.0, 2.0, 2.0),
+    radius_xl: (2.0, 2.0, 2.0, 2.0),
 )
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$theme_config/corner_radii"
 
     # -------------------------------------------------------------------------
-    # Window Management (Compositor Settings)
+    # Window Management (com.system76.CosmicComp)
     # -------------------------------------------------------------------------
     print_status "Configuring window management..."
     local comp_config="$cosmic_config/com.system76.CosmicComp/v1"
     run_as_user mkdir -p "$comp_config"
 
     # Active window hint size: 3
-    cat > "$comp_config/active_hint" << 'EOF'
-3
-EOF
+    echo "3" > "$comp_config/active_hint"
     chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/active_hint"
 
     # Gaps around tiled windows: 6
-    cat > "$comp_config/gaps" << 'EOF'
-(0, 6)
-EOF
+    echo "(0, 6)" > "$comp_config/gaps"
     chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/gaps"
 
-    # -------------------------------------------------------------------------
-    # Power Settings
-    # -------------------------------------------------------------------------
-    print_status "Configuring power settings..."
-    local power_config="$cosmic_config/com.system76.CosmicSettings.Power/v1"
-    run_as_user mkdir -p "$power_config"
-
-    # Power mode: high performance (Performance)
-    cat > "$power_config/power_profile" << 'EOF'
-"Performance"
+    # Keyboard config - NumLock on boot
+    cat > "$comp_config/keyboard_config" << 'EOF'
+(
+    numlock_state: BootOn,
+)
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/power_profile"
-
-    # Screen timeout: 30 minutes (1800 seconds)
-    cat > "$power_config/screen_off_time" << 'EOF'
-Some(1800)
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/screen_off_time"
-
-    # Automatic suspend: 1 hour (3600 seconds)
-    cat > "$power_config/suspend_time" << 'EOF'
-Some(3600)
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$power_config/suspend_time"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/keyboard_config"
 
     # -------------------------------------------------------------------------
-    # Input Settings (Num Lock)
+    # Power/Idle Settings (com.system76.CosmicIdle)
     # -------------------------------------------------------------------------
-    print_status "Configuring input settings..."
-    local input_config="$cosmic_config/com.system76.CosmicSettings.Input/v1"
-    run_as_user mkdir -p "$input_config"
+    print_status "Configuring power/idle settings..."
+    local idle_config="$cosmic_config/com.system76.CosmicIdle/v1"
+    run_as_user mkdir -p "$idle_config"
 
-    # Num lock on boot: enabled
-    cat > "$input_config/numlock_on_start" << 'EOF'
-true
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$input_config/numlock_on_start"
+    # Screen timeout: 30 minutes (1800000 milliseconds)
+    echo "Some(1800000)" > "$idle_config/screen_off_time"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$idle_config/screen_off_time"
+
+    # Automatic suspend on AC: 1 hour (3600000 milliseconds)
+    echo "Some(3600000)" > "$idle_config/suspend_on_ac_time"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$idle_config/suspend_on_ac_time"
 
     # -------------------------------------------------------------------------
     # Keyboard Shortcuts
@@ -472,8 +461,6 @@ EOF
     run_as_user mkdir -p "$shortcuts_config"
 
     # Alt+F4 to shutdown (system action)
-    # Move windows with KDE standard shortcuts
-    # Note: COSMIC shortcuts format may vary
     cat > "$shortcuts_config/custom" << 'EOF'
 {
     (Modifiers(bits: 8), "F4"): System(Shutdown),
@@ -489,9 +476,7 @@ EOF
     run_as_user mkdir -p "$session_config"
 
     # Disable confirm on shutdown
-    cat > "$session_config/confirm_logout" << 'EOF'
-false
-EOF
+    echo "false" > "$session_config/confirm_logout"
     chown "$ACTUAL_USER:$ACTUAL_USER" "$session_config/confirm_logout"
 
     print_success "COSMIC desktop configuration applied"
