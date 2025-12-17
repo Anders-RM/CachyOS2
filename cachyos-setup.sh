@@ -286,7 +286,7 @@ configure_desktop_trashcan() {
     print_status "Configuring desktop trash icon for COSMIC..."
 
     # COSMIC desktop stores config in ~/.config/cosmic/
-    # Desktop settings are in com.system76.CosmicFiles
+    # Desktop settings are in com.system76.CosmicFiles/v1/desktop
     local cosmic_config_dir="$ACTUAL_HOME/.config/cosmic"
     local cosmic_files_config="$cosmic_config_dir/com.system76.CosmicFiles/v1"
 
@@ -294,18 +294,21 @@ configure_desktop_trashcan() {
     run_as_user mkdir -p "$cosmic_files_config"
 
     # Enable trash icon on desktop
-    # COSMIC uses RON format for config files
+    # COSMIC uses RON (Rusty Object Notation) format for config files
     print_status "Enabling trash icon in COSMIC desktop settings..."
 
-    # Set show_trash to true
-    echo "true" > "$cosmic_files_config/show_trash"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/show_trash"
+    # Create the desktop config file with show_trash enabled
+    cat > "$cosmic_files_config/desktop" << 'EOF'
+(
+    grid_spacing: 100,
+    icon_size: 100,
+    show_content: true,
+    show_mounted_drives: false,
+    show_trash: true,
+)
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/desktop"
 
-    # Also enable desktop content
-    echo "true" > "$cosmic_files_config/show_content"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/show_content"
-
-    # If the config files don't work, provide manual instructions as fallback
     print_success "Desktop trash icon configuration applied"
     print_warning "If the trash icon doesn't appear after login/reboot:"
     print_warning "  1. Right-click on the desktop"
