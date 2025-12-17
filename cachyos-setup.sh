@@ -161,7 +161,7 @@ install_aur_packages() {
     # Install AUR packages using yay (as user)
     run_as_user yay -S --noconfirm --needed \
         filen-desktop-bin \
-        floorp \
+        floorp-bin \
         heroic-games-launcher-bin \
         modrinth-app-bin \
         protonplus \
