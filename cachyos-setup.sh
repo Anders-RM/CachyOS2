@@ -49,13 +49,11 @@ run_as_user() {
 
 # Function to keep sudo credentials alive in the background
 # This prevents password prompts during long-running operations
+# Must run as the actual user so yay's internal sudo calls don't prompt
 start_sudo_keepalive() {
     print_status "Starting sudo keep-alive (prevents password prompts)..."
-    # Update sudo timestamp and keep refreshing it in the background
-    while true; do
-        sudo -v
-        sleep 60
-    done &
+    # Run the keep-alive loop as the actual user
+    run_as_user bash -c 'while true; do sudo -v; sleep 60; done' &
     SUDO_KEEPALIVE_PID=$!
 }
 
@@ -494,7 +492,7 @@ EOF
             Alt,
             Shift,
         ],
-        key: "Pause",
+        key: "Break",
         description: "Shutdown",
     ): Spawn("shutdown now"),
 }
