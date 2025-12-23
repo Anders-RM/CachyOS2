@@ -47,6 +47,25 @@ run_as_user() {
     sudo -u "$ACTUAL_USER" "$@"
 }
 
+# Function to keep sudo credentials alive in the background
+# This prevents password prompts during long-running operations
+start_sudo_keepalive() {
+    print_status "Starting sudo keep-alive (prevents password prompts)..."
+    # Update sudo timestamp and keep refreshing it in the background
+    while true; do
+        sudo -v
+        sleep 60
+    done &
+    SUDO_KEEPALIVE_PID=$!
+}
+
+# Function to stop the sudo keep-alive process
+stop_sudo_keepalive() {
+    if [ -n "$SUDO_KEEPALIVE_PID" ]; then
+        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
+    fi
+}
+
 # ============================================================================
 # PACKAGE INSTALLATION
 # ============================================================================
@@ -109,7 +128,7 @@ install_1password() {
 
     # Import GPG key for package verification
     print_status "Importing 1Password GPG key..."
-    curl -sS https://downloads.1password.com/linux/keys/1password.asc | gpg --import
+    curl -sS https://downloads.1password.com/linux/keys/1password.asc | gpg --batch --yes --import
 
     # Install 1Password from AUR using yay
     print_status "Installing 1Password from AUR..."
@@ -396,8 +415,8 @@ EOF
     # Set favorites (Floorp and COSMIC Terminal)
     cat > "$applist_config/favorites" << 'EOF'
 [
-    "com.system76.CosmicTerm",
     "floorp",
+    "com.system76.CosmicTerm",
 ]
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$applist_config/favorites"
@@ -467,10 +486,17 @@ EOF
     local shortcuts_config="$cosmic_config/com.system76.CosmicSettings.Shortcuts/v1"
     run_as_user mkdir -p "$shortcuts_config"
 
-    # Alt+F4 to shutdown (system action)
+    # Alt+Shift+Break to shutdown
     cat > "$shortcuts_config/custom" << 'EOF'
 {
-    (Modifiers(bits: 8), "F4"): System(Shutdown),
+    (
+        modifiers: [
+            Alt,
+            Shift,
+        ],
+        key: "Pause",
+        description: "Shutdown",
+    ): Spawn("shutdown now"),
 }
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$shortcuts_config/custom"
@@ -666,7 +692,7 @@ print_summary() {
     echo "      * Window hints: 3px, tile gaps: 6px"
     echo "      * Power: high performance, screen off 30min, suspend 1h"
     echo "      * NumLock: on at boot"
-    echo "      * Alt+F4: shutdown, no confirm dialog"
+    echo "      * Alt+Shift+Break: shutdown (no confirm dialog)"
     echo
     echo "Post-Installation Steps:"
     echo "  1. Edit ~/.backup/smbcredentials with your SMB credentials"
@@ -701,6 +727,8 @@ main() {
     echo
 
     check_root
+    start_sudo_keepalive
+    trap stop_sudo_keepalive EXIT
 
     print_status "Setting up system for user: $ACTUAL_USER"
     print_status "Home directory: $ACTUAL_HOME"
