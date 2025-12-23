@@ -460,39 +460,6 @@ EOF
     echo "Some(3600000)" > "$idle_config/suspend_on_ac_time"
     chown "$ACTUAL_USER:$ACTUAL_USER" "$idle_config/suspend_on_ac_time"
 
-    # -------------------------------------------------------------------------
-    # Keyboard Shortcuts
-    # -------------------------------------------------------------------------
-    print_status "Configuring keyboard shortcuts..."
-    local shortcuts_config="$cosmic_config/com.system76.CosmicSettings.Shortcuts/v1"
-    run_as_user mkdir -p "$shortcuts_config"
-
-    # Alt+Shift+Break to shutdown
-    cat > "$shortcuts_config/custom" << 'EOF'
-{
-    (
-        modifiers: [
-            Alt,
-            Shift,
-        ],
-        key: "Break",
-        description: Some("Shutdown"),
-    ): Spawn("shutdown now"),
-}
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$shortcuts_config/custom"
-
-    # -------------------------------------------------------------------------
-    # Session Settings (disable confirm on shutdown)
-    # -------------------------------------------------------------------------
-    print_status "Configuring session settings..."
-    local session_config="$cosmic_config/com.system76.CosmicSession/v1"
-    run_as_user mkdir -p "$session_config"
-
-    # Disable confirm on shutdown
-    echo "false" > "$session_config/confirm_logout"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$session_config/confirm_logout"
-
     print_success "COSMIC desktop configuration applied"
     print_warning "Some settings may require logout/login to take effect"
 }
