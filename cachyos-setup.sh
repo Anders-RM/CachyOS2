@@ -47,23 +47,6 @@ run_as_user() {
     sudo -u "$ACTUAL_USER" "$@"
 }
 
-# Function to keep sudo credentials alive in the background
-# This prevents password prompts during long-running operations
-# Must run as the actual user so yay's internal sudo calls don't prompt
-start_sudo_keepalive() {
-    print_status "Starting sudo keep-alive (prevents password prompts)..."
-    # Run the keep-alive loop as the actual user
-    run_as_user bash -c 'while true; do sudo -v; sleep 60; done' &
-    SUDO_KEEPALIVE_PID=$!
-}
-
-# Function to stop the sudo keep-alive process
-stop_sudo_keepalive() {
-    if [ -n "$SUDO_KEEPALIVE_PID" ]; then
-        kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
-    fi
-}
-
 # ============================================================================
 # PACKAGE INSTALLATION
 # ============================================================================
@@ -725,8 +708,6 @@ main() {
     echo
 
     check_root
-    start_sudo_keepalive
-    trap stop_sudo_keepalive EXIT
 
     print_status "Setting up system for user: $ACTUAL_USER"
     print_status "Home directory: $ACTUAL_HOME"
