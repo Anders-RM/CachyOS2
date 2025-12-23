@@ -476,7 +476,7 @@ EOF
             Shift,
         ],
         key: "Break",
-        description: "Shutdown",
+        description: Some("Shutdown"),
     ): Spawn("shutdown now"),
 }
 EOF
