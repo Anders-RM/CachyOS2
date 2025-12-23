@@ -115,6 +115,13 @@ install_1password() {
     print_status "Installing 1Password from AUR..."
     run_as_user yay -S --noconfirm --needed 1password
 
+    # Add Floorp to custom allowed browsers list
+    print_status "Adding Floorp to 1Password custom allowed browsers..."
+    mkdir -p /etc/1password
+    echo "floorp" > /etc/1password/custom_allowed_browsers
+    chown root:root /etc/1password/custom_allowed_browsers
+    chmod 755 /etc/1password/custom_allowed_browsers
+
     print_success "1Password installed successfully"
 }
 
