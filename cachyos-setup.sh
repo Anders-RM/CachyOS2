@@ -252,10 +252,10 @@ configure_reflector() {
 
     # Enable and start the reflector timer and service
     print_status "Enabling and starting reflector timer..."
-    systemctl enable --now reflector.timer
+    #systemctl enable --now reflector.timer
 
     print_status "Enabling and starting reflector service..."
-    systemctl enable --now reflector.service
+    #systemctl enable --now reflector.service
 
     # Modify the reflector.timer configuration to run daily at 18:00
     print_status "Setting reflector timer to run daily at 18:00..."
