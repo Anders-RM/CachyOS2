@@ -465,6 +465,49 @@ EOF
 }
 
 # ============================================================================
+# GIT CONFIGURATION
+# ============================================================================
+
+configure_git() {
+    print_status "Configuring Git..."
+
+    local gitconfig="$ACTUAL_HOME/.gitconfig"
+
+    cat > "$gitconfig" << 'EOF'
+[user]
+    email = usual.dusk6145@fastmail.com
+    name = Anders-RM
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDiDjte+yS0mT30fXpScbgqyLahV/s0cc5TRZs03hcK1
+[gpg]
+    format = ssh
+[gpg "ssh"]
+    program = /opt/1Password/op-ssh-sign
+[commit]
+    gpgsign = true
+[url "git@github.com:"]
+    insteadOf = git://github.com/
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$gitconfig"
+
+    # Configure SSH to use 1Password agent
+    print_status "Configuring SSH for 1Password agent..."
+    local sshdir="$ACTUAL_HOME/.ssh"
+    local sshconfig="$sshdir/config"
+
+    run_as_user mkdir -p "$sshdir"
+    chmod 700 "$sshdir"
+
+    cat > "$sshconfig" << 'EOF'
+Host *
+    IdentityAgent ~/.1password/agent.sock
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$sshconfig"
+    chmod 600 "$sshconfig"
+
+    print_success "Git and SSH configured with 1Password"
+}
+
+# ============================================================================
 # BACKUP SCRIPT SETUP
 # ============================================================================
 
@@ -632,6 +675,7 @@ print_summary() {
     echo "  - Desktop: trash icon enabled"
     echo "  - Backup: script and timer installed"
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
+    echo "  - Git & SSH: 1Password agent, SSH signing, auto-sign commits"
     echo "  - COSMIC Desktop:"
     echo "      * Dock: extended to edges, no gap, removed applets"
     echo "      * Panel: removed workspaces button"
@@ -691,6 +735,7 @@ main() {
     configure_flatpak
     configure_desktop_trashcan
     configure_cosmic_desktop
+    configure_git
     setup_backup_script
     setup_update_service
 
