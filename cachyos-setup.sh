@@ -255,7 +255,7 @@ configure_reflector() {
     systemctl enable --now reflector.timer
 
     print_status "Enabling and starting reflector service..."
-    systemctl enable --now reflector.service
+    systemctl enable reflector.service
 
     # Modify the reflector.timer configuration to run daily at 18:00
     print_status "Setting reflector timer to run daily at 18:00..."
@@ -705,6 +705,7 @@ print_summary() {
     echo "To check backup timer status (run as your user):"
     echo "  systemctl --user status smb-backup.timer"
     echo
+    echo "Reboot your system to ensure all changes take effect."
 }
 
 # ============================================================================
@@ -731,7 +732,7 @@ main() {
     install_cider
     install_aur_packages
     configure_filen
-    #configure_reflector
+    configure_reflector
     configure_flatpak
     configure_desktop_trashcan
     configure_cosmic_desktop
