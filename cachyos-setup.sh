@@ -369,7 +369,6 @@ EOF
     # Panel plugins - configure wings (left and right sections)
     cat > "$panel_config/plugins_wings" << 'EOF'
 Some(([
-    "com.system76.CosmicPanelWorkspacesButton",
     "com.system76.CosmicPanelAppButton",
 ], [
     "com.system76.CosmicAppletInputSources",
