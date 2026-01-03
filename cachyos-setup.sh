@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# CachyOS Setup Script
-# Installs and configures applications for a complete CachyOS setup
+# CachyOS Setup Script (KDE Plasma)
+# Installs and configures applications for a complete CachyOS KDE setup
 # Run with: sudo ./cachyos-setup.sh
 
 set -e
@@ -390,180 +390,117 @@ configure_flatpak() {
 }
 
 # ============================================================================
-# DESKTOP TRASHCAN CONFIGURATION
+# KDE PLASMA DESKTOP CONFIGURATION
 # ============================================================================
 
-configure_desktop_trashcan() {
-    print_status "Configuring desktop trash icon for COSMIC..."
+configure_kde_plasma() {
+    print_status "Configuring KDE Plasma desktop settings..."
 
-    # COSMIC desktop stores config in ~/.config/cosmic/
-    # Desktop settings are in com.system76.CosmicFiles/v1/desktop
-    local cosmic_config_dir="$ACTUAL_HOME/.config/cosmic"
-    local cosmic_files_config="$cosmic_config_dir/com.system76.CosmicFiles/v1"
+    local kde_config="$ACTUAL_HOME/.config"
 
-    # Create config directory structure
-    run_as_user mkdir -p "$cosmic_files_config"
+    # -------------------------------------------------------------------------
+    # Task Manager Favorites (Taskbar pinned apps)
+    # -------------------------------------------------------------------------
+    print_status "Configuring taskbar favorites..."
+    # KDE stores favorites in plasma-org.kde.plasma.desktop-appletsrc
+    # We'll use kwriteconfig6 for cleaner configuration
 
-    # Enable trash icon on desktop
-    # COSMIC uses RON (Rusty Object Notation) format for config files
-    print_status "Enabling trash icon in COSMIC desktop settings..."
-
-    # Create the desktop config file with show_trash enabled
-    cat > "$cosmic_files_config/desktop" << 'EOF'
-(
-    grid_spacing: 100,
-    icon_size: 100,
-    show_content: true,
-    show_mounted_drives: false,
-    show_trash: true,
-)
+    # -------------------------------------------------------------------------
+    # NumLock on boot
+    # -------------------------------------------------------------------------
+    print_status "Enabling NumLock on boot..."
+    run_as_user mkdir -p "$kde_config"
+    cat > "$kde_config/kcminputrc" << 'EOF'
+[Keyboard]
+NumLock=0
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$cosmic_files_config/desktop"
-
-    print_success "Desktop trash icon configuration applied"
-    print_warning "If the trash icon doesn't appear after login/reboot:"
-    print_warning "  1. Right-click on the desktop"
-    print_warning "  2. Select 'Desktop view options'"
-    print_warning "  3. Enable 'Trash folder icon'"
-}
-
-# ============================================================================
-# COSMIC DESKTOP CONFIGURATION
-# ============================================================================
-
-configure_cosmic_desktop() {
-    print_status "Configuring COSMIC desktop settings..."
-
-    local cosmic_config="$ACTUAL_HOME/.config/cosmic"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kcminputrc"
 
     # -------------------------------------------------------------------------
-    # Dock Configuration (com.system76.CosmicPanel.Dock)
+    # Power/Idle Settings
     # -------------------------------------------------------------------------
-    print_status "Configuring COSMIC dock..."
-    local dock_config="$cosmic_config/com.system76.CosmicPanel.Dock/v1"
-    run_as_user mkdir -p "$dock_config"
+    print_status "Configuring power settings..."
+    cat > "$kde_config/powermanagementprofilesrc" << 'EOF'
+[AC][DPMSControl]
+idleTime=1800
+lockBeforeTurnOff=0
 
-    # Disable anchor gap (gap between dock and screen edge)
-    echo "false" > "$dock_config/anchor_gap"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/anchor_gap"
+[AC][DimDisplay]
+idleTime=600000
 
-    # Extend dock to edges
-    echo "true" > "$dock_config/expand_to_edges"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/expand_to_edges"
+[AC][HandleButtonEvents]
+lidAction=1
+powerButtonAction=16
+powerDownAction=16
 
-    # Keep only app list in center (removes other applets)
-    cat > "$dock_config/plugins_center" << 'EOF'
-Some([
-    "com.system76.CosmicAppList",
-])
+[AC][SuspendSession]
+idleTime=3600000
+suspendThenHibernate=false
+suspendType=1
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/plugins_center"
-
-    # Dock size
-    echo "M" > "$dock_config/size"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$dock_config/size"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/powermanagementprofilesrc"
 
     # -------------------------------------------------------------------------
-    # Panel Configuration (com.system76.CosmicPanel.Panel)
+    # Desktop Icons (Trash on desktop)
     # -------------------------------------------------------------------------
-    print_status "Configuring COSMIC panel..."
-    local panel_config="$cosmic_config/com.system76.CosmicPanel.Panel/v1"
-    run_as_user mkdir -p "$panel_config"
+    print_status "Configuring desktop icons..."
+    local desktop_folder="$ACTUAL_HOME/Desktop"
+    run_as_user mkdir -p "$desktop_folder"
 
-    # Panel plugins - configure wings (left and right sections)
-    cat > "$panel_config/plugins_wings" << 'EOF'
-Some(([
-    "com.system76.CosmicPanelAppButton",
-], [
-    "com.system76.CosmicAppletInputSources",
-    "com.system76.CosmicAppletA11y",
-    "com.system76.CosmicAppletStatusArea",
-    "com.system76.CosmicAppletTiling",
-    "com.system76.CosmicAppletAudio",
-    "com.system76.CosmicAppletBluetooth",
-    "com.system76.CosmicAppletNetwork",
-    "com.system76.CosmicAppletBattery",
-    "com.system76.CosmicAppletNotifications",
-    "com.system76.CosmicAppletPower",
-]))
+    # Create trash shortcut on desktop
+    cat > "$desktop_folder/trash.desktop" << 'EOF'
+[Desktop Entry]
+Name=Trash
+Comment=Contains removed files
+Icon=user-trash-full
+EmptyIcon=user-trash
+Type=Link
+URL=trash:/
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$panel_config/plugins_wings"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_folder/trash.desktop"
 
     # -------------------------------------------------------------------------
-    # App Tray / Favorites Configuration (com.system76.CosmicAppList)
+    # Window Decorations (smaller buttons, no window borders)
     # -------------------------------------------------------------------------
-    print_status "Configuring app tray favorites..."
-    local applist_config="$cosmic_config/com.system76.CosmicAppList/v1"
-    run_as_user mkdir -p "$applist_config"
+    print_status "Configuring window decorations..."
+    cat > "$kde_config/kwinrc" << 'EOF'
+[org.kde.kdecoration2]
+BorderSize=None
+BorderSizeAuto=false
+ButtonsOnLeft=
+ButtonsOnRight=IAX
 
-    # Set favorites (Floorp and COSMIC Terminal)
-    cat > "$applist_config/favorites" << 'EOF'
-[
-    "floorp",
-    "com.system76.CosmicTerm",
-]
+[Plugins]
+shakecursorEnabled=false
+
+[Effect-overview]
+BorderActivate=9
+
+[Desktops]
+Number=1
+Rows=1
+
+[Windows]
+BorderlessMaximizedWindows=true
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$applist_config/favorites"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kwinrc"
 
     # -------------------------------------------------------------------------
-    # Desktop Appearance - Square Style (com.system76.CosmicTheme.Dark.Builder)
+    # Dolphin (file manager) settings
     # -------------------------------------------------------------------------
-    print_status "Configuring desktop appearance (square style)..."
-    local theme_config="$cosmic_config/com.system76.CosmicTheme.Dark.Builder/v1"
-    run_as_user mkdir -p "$theme_config"
+    print_status "Configuring Dolphin file manager..."
+    cat > "$kde_config/dolphinrc" << 'EOF'
+[General]
+ShowFullPath=true
+ShowFullPathInTitlebar=true
 
-    # Set corner radius for square style (small values for slight rounding)
-    cat > "$theme_config/corner_radii" << 'EOF'
-(
-    radius_0: (0.0, 0.0, 0.0, 0.0),
-    radius_xs: (2.0, 2.0, 2.0, 2.0),
-    radius_s: (2.0, 2.0, 2.0, 2.0),
-    radius_m: (2.0, 2.0, 2.0, 2.0),
-    radius_l: (2.0, 2.0, 2.0, 2.0),
-    radius_xl: (2.0, 2.0, 2.0, 2.0),
-)
+[MainWindow]
+MenuBar=Disabled
+ToolBarsMovable=Disabled
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$theme_config/corner_radii"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/dolphinrc"
 
-    # -------------------------------------------------------------------------
-    # Window Management (com.system76.CosmicComp)
-    # -------------------------------------------------------------------------
-    print_status "Configuring window management..."
-    local comp_config="$cosmic_config/com.system76.CosmicComp/v1"
-    run_as_user mkdir -p "$comp_config"
-
-    # Active window hint size: 3
-    echo "3" > "$comp_config/active_hint"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/active_hint"
-
-    # Gaps around tiled windows: 6
-    echo "(0, 6)" > "$comp_config/gaps"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/gaps"
-
-    # Keyboard config - NumLock on boot
-    cat > "$comp_config/keyboard_config" << 'EOF'
-(
-    numlock_state: BootOn,
-)
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$comp_config/keyboard_config"
-
-    # -------------------------------------------------------------------------
-    # Power/Idle Settings (com.system76.CosmicIdle)
-    # -------------------------------------------------------------------------
-    print_status "Configuring power/idle settings..."
-    local idle_config="$cosmic_config/com.system76.CosmicIdle/v1"
-    run_as_user mkdir -p "$idle_config"
-
-    # Screen timeout: 30 minutes (1800000 milliseconds)
-    echo "Some(1800000)" > "$idle_config/screen_off_time"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$idle_config/screen_off_time"
-
-    # Automatic suspend on AC: 1 hour (3600000 milliseconds)
-    echo "Some(3600000)" > "$idle_config/suspend_on_ac_time"
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$idle_config/suspend_on_ac_time"
-
-    print_success "COSMIC desktop configuration applied"
+    print_success "KDE Plasma desktop configuration applied"
     print_warning "Some settings may require logout/login to take effect"
 }
 
@@ -753,7 +690,7 @@ setup_update_service() {
 print_summary() {
     echo
     echo "============================================================"
-    echo -e "${GREEN}CachyOS Setup Complete!${NC}"
+    echo -e "${GREEN}CachyOS KDE Setup Complete!${NC}"
     echo "============================================================"
     echo
     echo "Installed Applications:"
@@ -776,19 +713,15 @@ print_summary() {
     echo "  - Autostart: Filen, 1Password (silent), Steam (silent), Budget, Heroic, Octopi"
     echo "  - Filen: ~/filen created, desktop link added"
     echo "  - Reflector: daily at 18:00, mirrors from DE/SE/DK, sorted by rate"
-    echo "  - Desktop: trash icon enabled"
     echo "  - Backup: script and timer installed"
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo "  - Git & SSH: 1Password agent, SSH signing, auto-sign commits"
-    echo "  - COSMIC Desktop:"
-    echo "      * Dock: extended to edges, no gap, removed applets"
-    echo "      * Panel: removed workspaces button"
-    echo "      * App tray: Floorp added, defaults removed"
-    echo "      * Appearance: square style"
-    echo "      * Window hints: 3px, tile gaps: 6px"
-    echo "      * Power: high performance, screen off 30min, suspend 1h"
+    echo "  - KDE Plasma:"
+    echo "      * Desktop: trash icon added"
+    echo "      * Power: screen off 30min, suspend 1h"
     echo "      * NumLock: on at boot"
-    echo "      * Alt+Shift+Break: shutdown (no confirm dialog)"
+    echo "      * Window decorations: borderless maximized, minimal buttons"
+    echo "      * Dolphin: full path in titlebar, menu bar hidden"
     echo
     echo "Post-Installation Steps:"
     echo "  1. Edit ~/.backup/smbcredentials with your SMB credentials"
@@ -819,7 +752,7 @@ print_summary() {
 main() {
     echo
     echo "============================================================"
-    echo "         CachyOS Setup Script"
+    echo "       CachyOS Setup Script (KDE Plasma)"
     echo "============================================================"
     echo
 
@@ -838,8 +771,7 @@ main() {
     configure_filen
     configure_reflector
     configure_flatpak
-    configure_desktop_trashcan
-    configure_cosmic_desktop
+    configure_kde_plasma
     configure_git
     setup_backup_script
     setup_update_service
