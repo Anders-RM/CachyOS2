@@ -172,7 +172,7 @@ install_aur_packages() {
         heroic-games-launcher-bin \
         modrinth-app-bin \
         protonplus \
-        jellyfin-desktop
+        jellyfin-desktop 
 
     print_success "AUR packages installed successfully"
 }
@@ -208,7 +208,111 @@ configure_filen() {
         print_warning "Autostart entry will need to be created manually after installation"
     fi
 
-    print_success "Filen configured with autostart and desktop shortcut"
+    # Add 1Password to autostart (silent mode)
+    print_status "Adding 1Password to autostart (silent)..."
+    cat > "$autostart_dir/1password.desktop" << 'EOF'
+[Desktop Entry]
+Categories=Office;
+Comment=Password manager and secure wallet
+Exec=/opt/1Password/1password --silent %U
+Icon=1password
+Name=1Password
+StartupNotify=true
+StartupWMClass=1Password
+Terminal=false
+Type=Application
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/1password.desktop"
+
+    # Add Steam to autostart (silent mode)
+    print_status "Adding Steam to autostart (silent)..."
+    cat > "$autostart_dir/steam.desktop" << 'EOF'
+[Desktop Entry]
+Actions=Store;Community;Library;Servers;Screenshots;News;Settings;BigPicture;Friends;
+Categories=Network;FileTransfer;Game;
+Comment=Application for managing and playing games on Steam
+Exec=/usr/bin/steam -silent %U
+Icon=steam
+Name=Steam
+PrefersNonDefaultGPU=true
+StartupNotify=true
+Terminal=false
+Type=Application
+X-KDE-RunOnDiscreteGpu=true
+
+[Desktop Action BigPicture]
+Exec=steam steam://open/bigpicture
+Name=Big Picture
+
+[Desktop Action Community]
+Exec=steam steam://url/SteamIDControlPage
+Name=Community
+
+[Desktop Action Friends]
+Exec=steam steam://open/friends
+Name=Friends
+
+[Desktop Action Library]
+Exec=steam steam://open/games
+Name=Library
+
+[Desktop Action News]
+Exec=steam steam://open/news
+Name=News
+
+[Desktop Action Screenshots]
+Exec=steam steam://open/screenshots
+Name=Screenshots
+
+[Desktop Action Servers]
+Exec=steam steam://open/servers
+Name=Servers
+
+[Desktop Action Settings]
+Exec=steam steam://open/settings
+Name=Settings
+
+[Desktop Action Store]
+Exec=steam steam://store
+Name=Store
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/steam.desktop"
+
+    # Add Budget spreadsheet to autostart
+    print_status "Adding Budget spreadsheet to autostart..."
+    cat > "$autostart_dir/budget.desktop" << EOF
+[Desktop Entry]
+Categories=Office;Spreadsheet;
+Comment=Open budget spreadsheet
+Exec=libreoffice --nologo --calc -o $ACTUAL_HOME/filen/mis/Buget.ods %U
+Icon=libreoffice-calc
+Name=Budget
+StartupNotify=true
+StartupWMClass=libreoffice-calc
+Terminal=false
+Type=Application
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/budget.desktop"
+
+    # Add Heroic Games Launcher to autostart
+    print_status "Adding Heroic Games Launcher to autostart..."
+    if [ -f "/usr/share/applications/heroic.desktop" ]; then
+        cp /usr/share/applications/heroic.desktop "$autostart_dir/heroic.desktop"
+        chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/heroic.desktop"
+    else
+        print_warning "Heroic desktop file not found in /usr/share/applications/"
+    fi
+
+    # Add Octopi Notifier to autostart
+    print_status "Adding Octopi Notifier to autostart..."
+    if [ -f "/usr/share/applications/octopi-notifier.desktop" ]; then
+        cp /usr/share/applications/octopi-notifier.desktop "$autostart_dir/octopi-notifier.desktop"
+        chown "$ACTUAL_USER:$ACTUAL_USER" "$autostart_dir/octopi-notifier.desktop"
+    else
+        print_warning "Octopi Notifier desktop file not found in /usr/share/applications/"
+    fi
+
+    print_success "Autostart configured: Filen, 1Password, Steam, Budget, Heroic, Octopi"
 }
 
 # ============================================================================
@@ -669,7 +773,8 @@ print_summary() {
     echo "  - Reflector"
     echo
     echo "Configurations Applied:"
-    echo "  - Filen: autostart enabled, ~/filen created, desktop link added"
+    echo "  - Autostart: Filen, 1Password (silent), Steam (silent), Budget, Heroic, Octopi"
+    echo "  - Filen: ~/filen created, desktop link added"
     echo "  - Reflector: daily at 18:00, mirrors from DE/SE/DK, sorted by rate"
     echo "  - Desktop: trash icon enabled"
     echo "  - Backup: script and timer installed"
