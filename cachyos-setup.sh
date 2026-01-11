@@ -461,40 +461,6 @@ confirmLogout=false
 loginMode=emptySession
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/ksmserverrc"
-
-    # -------------------------------------------------------------------------
-    # Alt+F4 on desktop = logout dialog (KWin script)
-    # -------------------------------------------------------------------------
-    print_status "Installing kde-alt-f4-desktop KWin script..."
-    local temp_dir="/tmp/kde-alt-f4-desktop_$$"
-    run_as_user git clone https://github.com/micha4w/kde-alt-f4-desktop.git "$temp_dir"
-    run_as_user kpackagetool6 --type=KWin/Script -i "$temp_dir" || true
-    rm -rf "$temp_dir"
-
-    # Enable the script in KWin
-    cat > "$kde_config/kwinrc" << 'EOF'
-[Plugins]
-kde-alt-f4-desktopEnabled=true
-shakecursorEnabled=false
-
-[org.kde.kdecoration2]
-BorderSize=None
-BorderSizeAuto=false
-ButtonsOnLeft=
-ButtonsOnRight=IAX
-
-[Effect-overview]
-BorderActivate=9
-
-[Desktops]
-Number=1
-Rows=1
-
-[Windows]
-BorderlessMaximizedWindows=true
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kwinrc"
-
     # -------------------------------------------------------------------------
     # NumLock on boot
     # -------------------------------------------------------------------------
