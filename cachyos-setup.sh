@@ -452,6 +452,35 @@ EOF
     run_as_user plasma-apply-lookandfeel -a org.kde.breezedark.desktop
 
     # -------------------------------------------------------------------------
+    # Session Settings (no restore, no confirmation)
+    # -------------------------------------------------------------------------
+    print_status "Configuring session settings..."
+    cat > "$kde_config/ksmserverrc" << 'EOF'
+[General]
+confirmLogout=false
+loginMode=emptySession
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/ksmserverrc"
+
+    # -------------------------------------------------------------------------
+    # Keyboard Shortcuts (Alt+F4 on desktop = shutdown dialog)
+    # -------------------------------------------------------------------------
+    print_status "Configuring keyboard shortcuts..."
+    cat > "$kde_config/kglobalshortcutsrc" << 'EOF'
+[kwin]
+Window Close=Alt+F4,Alt+F4,Close Window
+
+[plasmashell]
+show-on-mouse-pos=none,none,Open Panel at Cursor Position
+
+[ksmserver]
+Log Out=none,Ctrl+Alt+Del,Log Out
+Log Out Without Confirmation=none,none,Log Out Without Confirmation
+Shut Down=Alt+F4,none,Shut Down
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kglobalshortcutsrc"
+
+    # -------------------------------------------------------------------------
     # NumLock on boot
     # -------------------------------------------------------------------------
     print_status "Enabling NumLock on boot..."
@@ -737,8 +766,10 @@ print_summary() {
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo "  - Git & SSH: 1Password agent, SSH signing, auto-sign commits"
     echo "  - KDE Plasma:"
-    echo "      * Global theme: Breeze Dark (including GTK apps)"
+    echo "      * Global theme: Breeze Dark"
     echo "      * Taskbar: Floorp and Konsole pinned"
+    echo "      * Session: no restore, no confirmation dialogs"
+    echo "      * Alt+F4 on desktop: shows shutdown dialog"
     echo "      * Desktop: trash icon added"
     echo "      * Power: screen off 30min, suspend 1h"
     echo "      * NumLock: on at boot"
