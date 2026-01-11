@@ -401,9 +401,49 @@ configure_kde_plasma() {
     # -------------------------------------------------------------------------
     # Task Manager Favorites (Taskbar pinned apps)
     # -------------------------------------------------------------------------
-    print_status "Configuring taskbar favorites..."
-    # KDE stores favorites in plasma-org.kde.plasma.desktop-appletsrc
-    # We'll use kwriteconfig6 for cleaner configuration
+    print_status "Configuring taskbar favorites (Floorp, Konsole)..."
+
+    # Configure Plasma Shell favorites for task manager
+    cat > "$kde_config/plasma-org.kde.plasma.desktop-appletsrc" << 'EOF'
+[ActionPlugins][0]
+RightButton;NoModifier=org.kde.contextmenu
+
+[Containments][1]
+activityId=
+formfactor=2
+immutability=1
+lastScreen=0
+location=4
+plugin=org.kde.panel
+wallpaperplugin=org.kde.image
+
+[Containments][1][Applets][2]
+immutability=1
+plugin=org.kde.plasma.kickoff
+
+[Containments][1][Applets][3]
+immutability=1
+plugin=org.kde.plasma.icontasks
+
+[Containments][1][Applets][3][Configuration][General]
+launchers=preferred://browser,applications:org.kde.konsole.desktop
+
+[Containments][1][Applets][4]
+immutability=1
+plugin=org.kde.plasma.marginsseparator
+
+[Containments][1][Applets][5]
+immutability=1
+plugin=org.kde.plasma.systemtray
+
+[Containments][1][Applets][6]
+immutability=1
+plugin=org.kde.plasma.digitalclock
+
+[Containments][1][General]
+AppletOrder=2;3;4;5;6;
+EOF
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/plasma-org.kde.plasma.desktop-appletsrc"
 
     # -------------------------------------------------------------------------
     # NumLock on boot
@@ -717,6 +757,7 @@ print_summary() {
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo "  - Git & SSH: 1Password agent, SSH signing, auto-sign commits"
     echo "  - KDE Plasma:"
+    echo "      * Taskbar: Floorp and Konsole pinned"
     echo "      * Desktop: trash icon added"
     echo "      * Power: screen off 30min, suspend 1h"
     echo "      * NumLock: on at boot"
