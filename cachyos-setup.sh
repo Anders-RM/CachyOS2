@@ -446,6 +446,12 @@ EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/plasma-org.kde.plasma.desktop-appletsrc"
 
     # -------------------------------------------------------------------------
+    # Global Theme - Breeze Dark
+    # -------------------------------------------------------------------------
+    print_status "Setting Breeze Dark as global theme..."
+    run_as_user plasma-apply-lookandfeel -a org.kde.breezedark.desktop
+
+    # -------------------------------------------------------------------------
     # NumLock on boot
     # -------------------------------------------------------------------------
     print_status "Enabling NumLock on boot..."
@@ -498,32 +504,6 @@ Type=Link
 URL=trash:/
 EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$desktop_folder/trash.desktop"
-
-    # -------------------------------------------------------------------------
-    # Window Decorations (smaller buttons, no window borders)
-    # -------------------------------------------------------------------------
-    print_status "Configuring window decorations..."
-    cat > "$kde_config/kwinrc" << 'EOF'
-[org.kde.kdecoration2]
-BorderSize=None
-BorderSizeAuto=false
-ButtonsOnLeft=
-ButtonsOnRight=IAX
-
-[Plugins]
-shakecursorEnabled=false
-
-[Effect-overview]
-BorderActivate=9
-
-[Desktops]
-Number=1
-Rows=1
-
-[Windows]
-BorderlessMaximizedWindows=true
-EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kwinrc"
 
     # -------------------------------------------------------------------------
     # Dolphin (file manager) settings
@@ -757,6 +737,7 @@ print_summary() {
     echo "  - Update service: runs every 3 hours (pacman, AUR, Flatpak)"
     echo "  - Git & SSH: 1Password agent, SSH signing, auto-sign commits"
     echo "  - KDE Plasma:"
+    echo "      * Global theme: Breeze Dark (including GTK apps)"
     echo "      * Taskbar: Floorp and Konsole pinned"
     echo "      * Desktop: trash icon added"
     echo "      * Power: screen off 30min, suspend 1h"
