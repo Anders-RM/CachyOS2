@@ -463,22 +463,37 @@ EOF
     chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/ksmserverrc"
 
     # -------------------------------------------------------------------------
-    # Keyboard Shortcuts (Alt+F4 on desktop = shutdown dialog)
+    # Alt+F4 on desktop = logout dialog (KWin script)
     # -------------------------------------------------------------------------
-    print_status "Configuring keyboard shortcuts..."
-    cat > "$kde_config/kglobalshortcutsrc" << 'EOF'
-[kwin]
-Window Close=Alt+F4,Alt+F4,Close Window
+    print_status "Installing kde-alt-f4-desktop KWin script..."
+    local temp_dir="/tmp/kde-alt-f4-desktop_$$"
+    run_as_user git clone https://github.com/micha4w/kde-alt-f4-desktop.git "$temp_dir"
+    run_as_user kpackagetool6 --type=KWin/Script -i "$temp_dir" || true
+    rm -rf "$temp_dir"
 
-[plasmashell]
-show-on-mouse-pos=none,none,Open Panel at Cursor Position
+    # Enable the script in KWin
+    cat > "$kde_config/kwinrc" << 'EOF'
+[Plugins]
+kde-alt-f4-desktopEnabled=true
+shakecursorEnabled=false
 
-[ksmserver]
-Log Out=none,Ctrl+Alt+Del,Log Out
-Log Out Without Confirmation=none,none,Log Out Without Confirmation
-Shut Down=Alt+F4,none,Shut Down
+[org.kde.kdecoration2]
+BorderSize=None
+BorderSizeAuto=false
+ButtonsOnLeft=
+ButtonsOnRight=IAX
+
+[Effect-overview]
+BorderActivate=9
+
+[Desktops]
+Number=1
+Rows=1
+
+[Windows]
+BorderlessMaximizedWindows=true
 EOF
-    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kglobalshortcutsrc"
+    chown "$ACTUAL_USER:$ACTUAL_USER" "$kde_config/kwinrc"
 
     # -------------------------------------------------------------------------
     # NumLock on boot
@@ -769,7 +784,7 @@ print_summary() {
     echo "      * Global theme: Breeze Dark"
     echo "      * Taskbar: Floorp and Konsole pinned"
     echo "      * Session: no restore, no confirmation dialogs"
-    echo "      * Alt+F4 on desktop: shows shutdown dialog"
+    echo "      * Alt+F4 on desktop: logout dialog (kde-alt-f4-desktop script)"
     echo "      * Desktop: trash icon added"
     echo "      * Power: screen off 30min, suspend 1h"
     echo "      * NumLock: on at boot"
